@@ -15,6 +15,7 @@ class CreateWorkspaceSimulation extends Simulation {
   //  config.getString("dev.sam.firecloudServiceAccount"))
   val serviceAccountFilePath = System.getenv(
     config.getString("dev.sam.serviceAccountFilePath"))
+  println(serviceAccountFilePath)
   val bufferedSource = scala.io.Source.fromFile(serviceAccountFilePath)
   val serviceAccountJson = bufferedSource.getLines.mkString
   bufferedSource.close
