@@ -5,6 +5,7 @@ buildscript {
 }
 
 plugins {
+	id 'scala'
 	id 'java'
 	id 'idea'
 	id 'org.springframework.boot' version '2.3.0.RELEASE'
@@ -13,13 +14,18 @@ plugins {
 	id 'org.openapi.generator' version '4.3.1'
 	id 'com.diffplug.gradle.spotless' version '4.0.1'
 	id "com.github.ben-manes.versions" version '0.28.0'
+	id 'com.github.lkishalmi.gatling' version '3.3.3'
 }
+
+def xms = System.getenv("JAVA_XMS_SIZE") ?: "512M"
+def xmx = System.getenv("JAVA_XMX_SIZE") ?: "512M"
 
 group = 'bio.terra.workspace'
 version = '0.0.3-SNAPSHOT'
 sourceCompatibility = '1.8'
 
 repositories {
+	jcenter()
 	mavenCentral()
 	maven {
 		url 'https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot-local/'
@@ -59,6 +65,10 @@ dependencies {
 	}
 
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+	gatling 'org.scala-lang:scala-library:2.12.0'
+	gatling group: 'com.google.auth', name: 'google-auth-library-oauth2-http', version: '0.20.0'
+
 }
 
 // for scans
@@ -112,8 +122,50 @@ tasks.openApiGenerate.dependsOn tasks.spotlessApply
 compileJava.dependsOn tasks.openApiGenerate
 sourceSets.main.java.srcDir "${openapiTargetDir}/src/main/java"
 ideaModule.dependsOn tasks.openApiGenerate
+tasks.jib.dependsOn tasks.gatlingClasses
 
 // end of OpenAPI Server Generation
+
+jib {
+	from {
+		//image = "openjdk:alpine"
+		image = "gradle:latest"
+	}
+	container {
+		workingDirectory = "/app"
+	}
+	extraDirectories {
+		paths {
+			path {
+				from = file(".")
+				into = "/app"
+			}
+		}
+		permissions = [
+				"/app/gradlew": "755"
+		]
+	}
+}
+
+gatling {
+//	toolVersion = '3.3.0'
+	jvmArgs = ['-server', '-XX:+UseThreadPriorities',
+			   '-XX:ThreadPriorityPolicy=42',
+			   "-Xms${xms}", "-Xmx${xmx}", '-Xmn100M',
+			   '-XX:+HeapDumpOnOutOfMemoryError',
+			   '-XX:+AggressiveOpts',
+			   '-XX:+OptimizeStringConcat',
+			   '-XX:+UseFastAccessorMethods',
+			   '-XX:+UseParNewGC',
+			   '-XX:+UseConcMarkSweepGC',
+			   '-XX:+CMSParallelRemarkEnabled',
+			   '-Djava.net.preferIPv4Stack=true',
+			   '-Djava.net.preferIPv6Addresses=false'
+	]
+	simulations = {
+		include "**/*Simulation.scala"
+	}
+}
 
 test {
 	useJUnitPlatform()
