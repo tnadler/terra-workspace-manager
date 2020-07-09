@@ -11,16 +11,16 @@ class CreateWorkspaceSimulation extends Simulation {
   val config: Config = ConfigFactory.load("application.conf")
   val wsmBaseUrl = config.getString("dev.terra.wsmBaseUrl")
   val email = config.getString("dev.sam.email")
-  //val serviceAccountJson = System.getenv(
-  //  config.getString("dev.sam.firecloudServiceAccount"))
+  val serviceAccountJson = System.getenv(
+    config.getString("dev.sam.firecloudServiceAccount"))
   //val serviceAccountFilePath = System.getenv(
   //  config.getString("dev.sam.serviceAccountFilePath"))
-  val serviceAccountFilePath = "/tmp/wsm-firecloud-account.json"
-  val bufferedSource = scala.io.Source.fromFile(serviceAccountFilePath)
-  val serviceAccountJson = bufferedSource.getLines.mkString
-  bufferedSource.close
-  //val concurrency = System.getenv("GATLING_CONCURRENCY").toInt
-  val concurrency = 10
+  //val serviceAccountFilePath = "/tmp/wsm-firecloud-account.json"
+  //val bufferedSource = scala.io.Source.fromFile(serviceAccountFilePath)
+  //val serviceAccountJson = bufferedSource.getLines.mkString
+  //bufferedSource.close
+  val concurrency = System.getenv("GATLING_CONCURRENCY").toInt
+  //val concurrency = 10
 
   //println(wsmBaseUrl)
   //println(email)
