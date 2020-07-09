@@ -122,7 +122,10 @@ tasks.openApiGenerate.dependsOn tasks.spotlessApply
 compileJava.dependsOn tasks.openApiGenerate
 sourceSets.main.java.srcDir "${openapiTargetDir}/src/main/java"
 ideaModule.dependsOn tasks.openApiGenerate
-tasks.jib.dependsOn tasks.gatlingClasses
+//tasks.jib.dependsOn tasks.gatlingClasses
+//tasks.jib {
+//	dependsOn "showT1PropertiesTask"
+//}
 
 // end of OpenAPI Server Generation
 
@@ -170,6 +173,10 @@ gatling {
 test {
 	useJUnitPlatform()
 }
+
+//task showT1PropertiesTask {
+//	println "T1: $t1"
+//}
 
 task unitTest(type: Test) {
 	useJUnitPlatform {
