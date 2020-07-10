@@ -12,6 +12,22 @@ class CreateWorkspaceSimulation extends Simulation {
   val wsmBaseUrl = config.getString("dev.terra.wsmBaseUrl")
   val email = config.getString("dev.sam.email")
 
+  def githubWorkflow() = {
+    var serviceAccountFilePath = "/tmp/wsm-firecloud-account.json"
+    var bufferedSource = scala.io.Source.fromFile(serviceAccountFilePath)
+    var serviceAccountJson = bufferedSource.getLines.mkString
+    bufferedSource.close
+    var concurrency = 10
+    (servieAccountJson, concurrency)
+  }
+
+  def skaffoldHelmWorkflow() = {
+    var serviceAccountJson = System.getenv(
+      config.getString("dev.sam.firecloudServiceAccount"))
+    var concurrency = System.getenv("GATLING_CONCURRENCY").toInt
+    (servieAccountJson, concurrency)
+  }
+
   /*
   val serviceAccountJson = System.getenv(
     config.getString("dev.sam.firecloudServiceAccount"))
@@ -20,11 +36,17 @@ class CreateWorkspaceSimulation extends Simulation {
 
   //val serviceAccountFilePath = System.getenv(
   //  config.getString("dev.sam.serviceAccountFilePath"))
+  /*
   val serviceAccountFilePath = "/tmp/wsm-firecloud-account.json"
   val bufferedSource = scala.io.Source.fromFile(serviceAccountFilePath)
   val serviceAccountJson = bufferedSource.getLines.mkString
   bufferedSource.close
   val concurrency = 10
+  */
+
+  var values = githubWorkflow()
+  var serviceAccountJson = values._1
+  var concurrency = values._2
 
   //println(wsmBaseUrl)
   //println(email)
