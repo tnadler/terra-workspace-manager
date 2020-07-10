@@ -18,14 +18,14 @@ class CreateWorkspaceSimulation extends Simulation {
     var serviceAccountJson = bufferedSource.getLines.mkString
     bufferedSource.close
     var concurrency = 10
-    (servieAccountJson, concurrency)
+    (serviceAccountJson, concurrency)
   }
 
   def skaffoldHelmWorkflow() = {
     var serviceAccountJson = System.getenv(
       config.getString("dev.sam.firecloudServiceAccount"))
     var concurrency = System.getenv("GATLING_CONCURRENCY").toInt
-    (servieAccountJson, concurrency)
+    (serviceAccountJson, concurrency)
   }
 
   /*
