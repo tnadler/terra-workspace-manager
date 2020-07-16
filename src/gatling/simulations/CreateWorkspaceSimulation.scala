@@ -44,8 +44,8 @@ class CreateWorkspaceSimulation extends Simulation {
   val concurrency = 10
   */
 
-  var values = githubWorkflow()
-  //var values = skaffoldHelmWorkflow()
+  //var values = githubWorkflow()
+  var values = skaffoldHelmWorkflow()
   var serviceAccountJson = values._1
   var concurrency = values._2
 
