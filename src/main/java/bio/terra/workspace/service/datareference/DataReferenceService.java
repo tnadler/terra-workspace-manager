@@ -15,6 +15,7 @@ import bio.terra.workspace.service.iam.AuthenticatedUserRequest;
 import bio.terra.workspace.service.iam.SamService;
 import bio.terra.workspace.service.job.JobBuilder;
 import bio.terra.workspace.service.job.JobService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,13 +26,16 @@ public class DataReferenceService {
   private final SamService samService;
   private final JobService jobService;
   private final DataReferenceValidationUtils validationUtils;
+  private final ObjectMapper objectMapper;
 
   @Autowired
   public DataReferenceService(
+      ObjectMapper objectMapper,
       DataReferenceDao dataReferenceDao,
       SamService samService,
       JobService jobService,
       DataReferenceValidationUtils validationUtils) {
+    this.objectMapper = objectMapper;
     this.dataReferenceDao = dataReferenceDao;
     this.samService = samService;
     this.jobService = jobService;
@@ -66,9 +70,9 @@ public class DataReferenceService {
           "Unable to create a reference with a resourceId, use a reference type and description"
               + " instead. This functionality will be implemented in the future.");
     }
-    if (body.getReferenceType() == null || body.getReference() == null) {
+    if (body.getReference() == null) {
       throw new InvalidDataReferenceException(
-          "Data reference must contain a reference type and a reference description");
+          "Data reference must contain a reference description");
     }
     // TODO: remove this check when we add support for resource-specific credentials.
     if (body.getCredentialId() != null) {
@@ -93,9 +97,9 @@ public class DataReferenceService {
             .addParameter(DataReferenceFlightMapKeys.REFERENCE_ID, referenceId)
             .addParameter(DataReferenceFlightMapKeys.WORKSPACE_ID, workspaceId);
 
-    String ref =
-        validationUtils.validateReference(body.getReferenceType(), body.getReference(), userReq);
-    createJob.addParameter(DataReferenceFlightMapKeys.REFERENCE, ref);
+    ReferenceTypeEnum referenceType = validationUtils.validateReference(body.getReference(), userReq);
+
+    createJob.addParameter(DataReferenceFlightMapKeys.REFERENCE_TYPE, referenceType);
 
     createJob.submitAndWait(String.class);
 

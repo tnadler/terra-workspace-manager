@@ -30,7 +30,7 @@ public class CreateDataReferenceStep implements Step {
     workingMap.put(CREATE_DATA_REFERENCE_COMPLETED_KEY, false);
     UUID referenceId = inputMap.get(DataReferenceFlightMapKeys.REFERENCE_ID, UUID.class);
     UUID workspaceId = inputMap.get(DataReferenceFlightMapKeys.WORKSPACE_ID, UUID.class);
-    String reference = inputMap.get(DataReferenceFlightMapKeys.REFERENCE, String.class);
+    String referenceType = inputMap.get(DataReferenceFlightMapKeys.REFERENCE_TYPE, String.class);
     CreateDataReferenceRequestBody body =
         inputMap.get(JobMapKeys.REQUEST.getKeyName(), CreateDataReferenceRequestBody.class);
 
@@ -41,8 +41,8 @@ public class CreateDataReferenceStep implements Step {
         body.getResourceId(),
         body.getCredentialId(),
         body.getCloningInstructions(),
-        body.getReferenceType(),
-        reference);
+        referenceType,
+        body.getReference());
     workingMap.put(CREATE_DATA_REFERENCE_COMPLETED_KEY, true);
 
     FlightUtils.setResponse(flightContext, referenceId.toString(), HttpStatus.OK);

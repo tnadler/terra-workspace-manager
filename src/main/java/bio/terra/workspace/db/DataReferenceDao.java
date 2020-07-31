@@ -4,10 +4,11 @@ import bio.terra.workspace.app.configuration.WorkspaceManagerJdbcConfiguration;
 import bio.terra.workspace.common.exception.DataReferenceNotFoundException;
 import bio.terra.workspace.common.exception.DuplicateDataReferenceException;
 import bio.terra.workspace.generated.model.CloningInstructionsEnum;
+import bio.terra.workspace.generated.model.ControlledResourceDescription;
 import bio.terra.workspace.generated.model.DataReferenceDescription;
 import bio.terra.workspace.generated.model.DataReferenceList;
 import bio.terra.workspace.generated.model.ReferenceTypeEnum;
-import bio.terra.workspace.generated.model.ResourceDescription;
+import bio.terra.workspace.generated.model.UncontrolledReferenceDescription;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -42,7 +43,6 @@ public class DataReferenceDao {
       UUID resourceId,
       String credentialId,
       CloningInstructionsEnum cloningInstructions,
-      ReferenceTypeEnum referenceType,
       String reference) {
     String sql =
         "INSERT INTO workspace_data_reference (workspace_id, reference_id, name, resource_id, credential_id, cloning_instructions, reference_type, reference) VALUES "
@@ -55,7 +55,7 @@ public class DataReferenceDao {
     paramMap.put("cloning_instructions", cloningInstructions.toString());
     paramMap.put("credential_id", credentialId);
     paramMap.put("resource_id", resourceId == null ? null : resourceId.toString());
-    paramMap.put("reference_type", referenceType == null ? null : referenceType.toString());
+    //    paramMap.put("reference_type", referenceType == null ? null : referenceType.toString());
     paramMap.put("reference", reference);
 
     try {
@@ -147,14 +147,15 @@ public class DataReferenceDao {
     return new DataReferenceList().resources(resultList);
   }
 
-  private static class ResourceDescriptionMapper implements RowMapper<ResourceDescription> {
-    public ResourceDescription mapRow(ResultSet rs, int rowNum) throws SQLException {
+  private static class ResourceDescriptionMapper
+      implements RowMapper<ControlledResourceDescription> {
+    public ControlledResourceDescription mapRow(ResultSet rs, int rowNum) throws SQLException {
       String resourceId = rs.getString("resource_id");
 
       if (resourceId == null) {
         return null;
       } else {
-        return new ResourceDescription()
+        return new ControlledResourceDescription()
             .workspaceId(UUID.fromString(rs.getString("workspace_id")))
             .resourceId(UUID.fromString(resourceId))
             .isVisible(rs.getBoolean("is_visible"))
@@ -175,8 +176,7 @@ public class DataReferenceDao {
           .credentialId(rs.getString("credential_id"))
           .cloningInstructions(
               CloningInstructionsEnum.fromValue(rs.getString("cloning_instructions")))
-          .referenceType(ReferenceTypeEnum.fromValue(rs.getString("reference_type")))
-          .reference(rs.getString("reference"));
+          .reference(rs.getObject("reference", UncontrolledReferenceDescription.class));
     }
   }
 
