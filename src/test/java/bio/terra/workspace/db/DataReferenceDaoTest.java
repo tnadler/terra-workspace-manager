@@ -15,7 +15,6 @@ import bio.terra.workspace.generated.model.DataReferenceDescription;
 import bio.terra.workspace.generated.model.DataReferenceList;
 import bio.terra.workspace.generated.model.DataRepoSnapshot;
 import bio.terra.workspace.generated.model.ReferenceTypeEnum;
-import bio.terra.workspace.generated.model.UncontrolledReferenceDescription;
 import bio.terra.workspace.service.datareference.exception.InvalidDataReferenceException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,7 +50,7 @@ public class DataReferenceDaoTest {
   private UUID referenceId;
   private String name;
   private ReferenceTypeEnum referenceType;
-  private UncontrolledReferenceDescription reference;
+  private DataRepoSnapshot reference;
   private String credentialId;
   private UUID resourceId;
   private CloningInstructionsEnum cloningInstructions;
@@ -63,10 +62,9 @@ public class DataReferenceDaoTest {
     name = UUID.randomUUID().toString();
     referenceType = ReferenceTypeEnum.DATA_REPO_SNAPSHOT;
 
-    DataRepoSnapshot drs = new DataRepoSnapshot();
-    drs.setInstanceName(UUID.randomUUID().toString());
-    drs.setSnapshot(UUID.randomUUID().toString());
-    reference = new UncontrolledReferenceDescription().dataRepoSnapshot(drs);
+    reference = new DataRepoSnapshot();
+    reference.setInstanceName(UUID.randomUUID().toString());
+    reference.setSnapshot(UUID.randomUUID().toString());
 
     credentialId = UUID.randomUUID().toString();
     resourceId =

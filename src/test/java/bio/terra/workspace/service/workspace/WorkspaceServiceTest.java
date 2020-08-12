@@ -25,7 +25,6 @@ import bio.terra.workspace.generated.model.DataReferenceDescription;
 import bio.terra.workspace.generated.model.DataRepoSnapshot;
 import bio.terra.workspace.generated.model.DeleteWorkspaceRequestBody;
 import bio.terra.workspace.generated.model.ErrorReport;
-import bio.terra.workspace.generated.model.UncontrolledReferenceDescription;
 import bio.terra.workspace.generated.model.WorkspaceDescription;
 import bio.terra.workspace.service.datarepo.DataRepoService;
 import bio.terra.workspace.service.iam.AuthenticatedUserRequest;
@@ -243,10 +242,8 @@ public class WorkspaceServiceTest {
     assertThat(workspace.getId(), equalTo(workspaceId));
 
     // Next, add a data reference to that workspace.
-    UncontrolledReferenceDescription reference =
-        new UncontrolledReferenceDescription()
-            .dataRepoSnapshot(
-                new DataRepoSnapshot().instanceName("fake instance").snapshot("fake snapshot"));
+    DataRepoSnapshot reference =
+        new DataRepoSnapshot().instanceName("fake instance").snapshot("fake snapshot");
     CreateDataReferenceRequestBody referenceRequest =
         new CreateDataReferenceRequestBody()
             .name("fake-data-reference")

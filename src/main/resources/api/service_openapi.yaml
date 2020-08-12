@@ -519,9 +519,11 @@ components:
     UncontrolledReferenceDescription:
       description: The description of the reference, if an uncontrolled resource. Exactly one property is required.
       type: object
+      required: [type]
+      additionalProperties: true
       properties:
-        dataRepoSnapshot:
-          $ref: '#/components/schemas/DataRepoSnapshot'
+        type:
+          $ref: '#/components/schemas/ReferenceTypeEnum'
 
     DataReferenceList:
       type: object
@@ -534,15 +536,17 @@ components:
             $ref: '#/components/schemas/DataReferenceDescription'
 
     DataRepoSnapshot:
-      type: object
-      required: [instanceName, snapshot]
-      properties:
-        instanceName:
-          description: The name of the Data Repo instance
-          type: string
-        snapshot:
-          description: The ID of the Data Repo snapshot
-          type: string
+      allOf:
+        - $ref: '#/components/schemas/UncontrolledReferenceDescription'
+        - type: object
+          required: [instanceName, snapshot]
+          properties:
+            instanceName:
+              description: The name of the Data Repo instance
+              type: string
+            snapshot:
+              description: The ID of the Data Repo snapshot
+              type: string
 
   responses:
     CreatedWorkspaceResponse:

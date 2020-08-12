@@ -8,8 +8,6 @@ import bio.terra.workspace.generated.model.UncontrolledReferenceDescription;
 import bio.terra.workspace.service.datareference.exception.InvalidDataReferenceException;
 import bio.terra.workspace.service.datarepo.DataRepoService;
 import bio.terra.workspace.service.iam.AuthenticatedUserRequest;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -24,27 +22,13 @@ public class DataReferenceValidationUtils {
 
   public ReferenceTypeEnum validateReference(
       UncontrolledReferenceDescription reference, AuthenticatedUserRequest userReq) {
-    List<ReferenceTypeEnum> presentFields = new ArrayList<>();
-    if (reference.getDataRepoSnapshot() != null) {
-      presentFields.add(DATA_REPO_SNAPSHOT);
-    }
 
-    // Check that only one type of reference is provided
-    if (presentFields.size() != 1) {
-      throw new InvalidDataReferenceException(
-          "Invalid reference shape specified. Your request contained all of: "
-              + presentFields.toString()
-              + ". Specify exactly one of: "
-              + DATA_REPO_SNAPSHOT.toString());
-    }
-
-    // Check that the provided reference is valid
-    switch (presentFields.get(0)) {
+    switch (reference.getType()) {
       case DATA_REPO_SNAPSHOT:
-        validateDataRepoReference(reference.getDataRepoSnapshot(), userReq);
+        validateDataRepoReference((DataRepoSnapshot) reference, userReq);
         return DATA_REPO_SNAPSHOT;
       default:
-        throw new IllegalStateException("Unexpected value: " + presentFields.get(0));
+        throw new IllegalStateException("Unexpected value: " + reference.getType());
     }
   }
 
