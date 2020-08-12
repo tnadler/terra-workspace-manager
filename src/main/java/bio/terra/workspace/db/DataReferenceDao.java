@@ -43,7 +43,7 @@ public class DataReferenceDao {
       UUID resourceId,
       String credentialId,
       CloningInstructionsEnum cloningInstructions,
-      String reference) {
+      UncontrolledReferenceDescription reference) {
     String sql =
         "INSERT INTO workspace_data_reference (workspace_id, reference_id, name, resource_id, credential_id, cloning_instructions, reference_type, reference) VALUES "
             + "(:workspace_id, :reference_id, :name, :resource_id, :credential_id, :cloning_instructions, :reference_type, cast(:reference AS json))";

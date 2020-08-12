@@ -41,7 +41,6 @@ public class CreateDataReferenceStep implements Step {
         body.getResourceId(),
         body.getCredentialId(),
         body.getCloningInstructions(),
-        referenceType,
         body.getReference());
     workingMap.put(CREATE_DATA_REFERENCE_COMPLETED_KEY, true);
 

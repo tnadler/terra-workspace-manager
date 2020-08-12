@@ -309,8 +309,7 @@ public class DataReferenceServiceTest {
         new CreateDataReferenceRequestBody()
             .name("name")
             .cloningInstructions(CloningInstructionsEnum.NOTHING)
-            .referenceType(ReferenceTypeEnum.DATA_REPO_SNAPSHOT)
-            .reference(objectMapper.writeValueAsString(snapshot));
+            .reference(new UncontrolledReferenceDescription().dataRepoSnapshot(snapshot));
 
     DataReferenceDescription response = runCreateDataReferenceCall(initialWorkspaceId, refBody);
     DataReferenceDescription getResponse =

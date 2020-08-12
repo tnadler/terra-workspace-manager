@@ -25,7 +25,7 @@ import bio.terra.workspace.generated.model.DataReferenceDescription;
 import bio.terra.workspace.generated.model.DataRepoSnapshot;
 import bio.terra.workspace.generated.model.DeleteWorkspaceRequestBody;
 import bio.terra.workspace.generated.model.ErrorReport;
-import bio.terra.workspace.generated.model.ReferenceTypeEnum;
+import bio.terra.workspace.generated.model.UncontrolledReferenceDescription;
 import bio.terra.workspace.generated.model.WorkspaceDescription;
 import bio.terra.workspace.service.datarepo.DataRepoService;
 import bio.terra.workspace.service.iam.AuthenticatedUserRequest;
@@ -243,14 +243,15 @@ public class WorkspaceServiceTest {
     assertThat(workspace.getId(), equalTo(workspaceId));
 
     // Next, add a data reference to that workspace.
-    DataRepoSnapshot reference =
-        new DataRepoSnapshot().instanceName("fake instance").snapshot("fake snapshot");
+    UncontrolledReferenceDescription reference =
+        new UncontrolledReferenceDescription()
+            .dataRepoSnapshot(
+                new DataRepoSnapshot().instanceName("fake instance").snapshot("fake snapshot"));
     CreateDataReferenceRequestBody referenceRequest =
         new CreateDataReferenceRequestBody()
             .name("fake-data-reference")
             .cloningInstructions(CloningInstructionsEnum.NOTHING)
-            .referenceType(ReferenceTypeEnum.DATA_REPO_SNAPSHOT)
-            .reference(objectMapper.writeValueAsString(reference));
+            .reference(reference);
     MvcResult dataReferenceResult =
         mvc.perform(
                 post("/api/workspaces/v1/" + workspaceId + "/datareferences")

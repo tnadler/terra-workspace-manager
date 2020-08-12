@@ -97,7 +97,8 @@ public class DataReferenceService {
             .addParameter(DataReferenceFlightMapKeys.REFERENCE_ID, referenceId)
             .addParameter(DataReferenceFlightMapKeys.WORKSPACE_ID, workspaceId);
 
-    ReferenceTypeEnum referenceType = validationUtils.validateReference(body.getReference(), userReq);
+    ReferenceTypeEnum referenceType =
+        validationUtils.validateReference(body.getReference(), userReq);
 
     createJob.addParameter(DataReferenceFlightMapKeys.REFERENCE_TYPE, referenceType);
 
