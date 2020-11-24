@@ -7,12 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
 
 import bio.terra.workspace.common.BaseConnectedTest;
 import bio.terra.workspace.common.exception.DataReferenceNotFoundException;
 import bio.terra.workspace.common.exception.SamUnauthorizedException;
-import bio.terra.workspace.service.datareference.exception.InvalidDataReferenceException;
 import bio.terra.workspace.service.datareference.model.CloningInstructions;
 import bio.terra.workspace.service.datareference.model.DataReference;
 import bio.terra.workspace.service.datareference.model.DataReferenceRequest;
@@ -203,7 +201,7 @@ public class DataReferenceServiceTest extends BaseConnectedTest {
     WorkspaceRequest request =
         WorkspaceRequest.builder()
             .workspaceId(UUID.randomUUID())
-            .jobId(UUID.randomUUID().toString())
+            .jobId(Optional.empty())
             .spendProfileId(Optional.empty())
             .workspaceStage(WorkspaceStage.RAWLS_WORKSPACE)
             .build();

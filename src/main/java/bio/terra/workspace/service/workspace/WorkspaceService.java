@@ -55,8 +55,7 @@ public class WorkspaceService {
     String description = "Create workspace " + workspaceRequest.workspaceId().toString();
     JobBuilder createJob =
         jobService
-            .newJob(
-                description, workspaceRequest.jobId(), WorkspaceCreateFlight.class, null, userReq)
+            .newJob(description, workspaceRequest.jobId(), WorkspaceCreateFlight.class, userReq)
             .addParameter(WorkspaceFlightMapKeys.WORKSPACE_ID, workspaceRequest.workspaceId());
     if (workspaceRequest.spendProfileId().isPresent()) {
       createJob.addParameter(
@@ -66,7 +65,7 @@ public class WorkspaceService {
     createJob.addParameter(
         WorkspaceFlightMapKeys.WORKSPACE_STAGE, workspaceRequest.workspaceStage());
 
-    return createJob.submitAndWait(UUID.class, true);
+    return createJob.submitAndWait(UUID.class);
   }
 
   /** Retrieves an existing workspace by ID */
@@ -85,14 +84,9 @@ public class WorkspaceService {
     String description = "Delete workspace " + id;
     JobBuilder deleteJob =
         jobService
-            .newJob(
-                description,
-                UUID.randomUUID().toString(),
-                WorkspaceDeleteFlight.class,
-                null, // Delete does not have a useful request body
-                userReq)
+            .newJob(description, Optional.empty(), WorkspaceDeleteFlight.class, userReq)
             .addParameter(WorkspaceFlightMapKeys.WORKSPACE_ID, id);
-    deleteJob.submitAndWait(null, false);
+    deleteJob.submitAndWait(null);
   }
 
   /** Retrieves the cloud context of a workspace. */
@@ -104,7 +98,8 @@ public class WorkspaceService {
 
   /** Start a job to create a Google cloud context for the workspace. Returns the job id. */
   @Traced
-  public String createGoogleContext(UUID workspaceId, AuthenticatedUserRequest userReq) {
+  public String createGoogleContext(
+      UUID workspaceId, Optional<String> jobId, AuthenticatedUserRequest userReq) {
     samService.workspaceAuthz(userReq, workspaceId, SamUtils.SAM_WORKSPACE_WRITE_ACTION);
     WorkspaceStage stage = workspaceDao.getWorkspaceStage(workspaceId);
     if (!WorkspaceStage.MC_WORKSPACE.equals(stage)) {
@@ -120,19 +115,13 @@ public class WorkspaceService {
       throw new NoBillingAccountException(spendProfileId.get());
     }
 
-    String jobId = UUID.randomUUID().toString();
-    jobService
+    return jobService
         .newJob(
-            "Create Google Context " + workspaceId,
-            jobId,
-            CreateGoogleContextFlight.class,
-            /* request= */ null,
-            userReq)
+            "Create Google Context " + workspaceId, jobId, CreateGoogleContextFlight.class, userReq)
         .addParameter(WorkspaceFlightMapKeys.WORKSPACE_ID, workspaceId)
         .addParameter(
             WorkspaceFlightMapKeys.BILLING_ACCOUNT_ID, spendProfile.billingAccountId().get())
-        .submit(false);
-    return jobId;
+        .submit();
   }
 
   /** Delete the Google cloud context for the workspace. */
@@ -146,11 +135,10 @@ public class WorkspaceService {
     jobService
         .newJob(
             "Delete Google Context " + workspaceId,
-            UUID.randomUUID().toString(),
+            Optional.empty(),
             DeleteGoogleContextFlight.class,
-            /* request= */ null,
             userReq)
         .addParameter(WorkspaceFlightMapKeys.WORKSPACE_ID, workspaceId)
-        .submitAndWait(null, false);
+        .submitAndWait(null);
   }
 }

@@ -81,13 +81,11 @@ public class WorkspaceApiController implements WorkspaceApi {
     WorkspaceStage internalStage = WorkspaceStage.fromApiModel(requestStage);
     Optional<SpendProfileId> spendProfileId =
         Optional.ofNullable(body.getSpendProfile()).map(SpendProfileId::create);
-    // If clients do not provide a job ID, we generate one instead.
-    String jobId = body.getJobId() != null ? body.getJobId() : UUID.randomUUID().toString();
 
     WorkspaceRequest internalRequest =
         WorkspaceRequest.builder()
             .workspaceId(body.getId())
-            .jobId(jobId)
+            .jobId(Optional.ofNullable(body.getJobId()))
             .spendProfileId(spendProfileId)
             .workspaceStage(internalStage)
             .build();
@@ -272,9 +270,8 @@ public class WorkspaceApiController implements WorkspaceApi {
   public ResponseEntity<JobModel> createGoogleContext(
       UUID id, @Valid CreateGoogleContextRequestBody body) {
     AuthenticatedUserRequest userReq = getAuthenticatedInfo();
-    // TODO(PF-153): Use the optional jobId from the body for idempotency instead of always creating
-    // a new job id.
-    String jobId = workspaceService.createGoogleContext(id, userReq);
+    String jobId =
+        workspaceService.createGoogleContext(id, Optional.ofNullable(body.getJobId()), userReq);
     JobModel jobModel = jobService.retrieveJob(jobId, userReq);
     // TODO(PF-221): Fix the jobs polling location once it exists.
     return ResponseEntity.status(HttpStatus.ACCEPTED)

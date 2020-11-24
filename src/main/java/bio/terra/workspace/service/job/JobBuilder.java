@@ -5,6 +5,8 @@ import bio.terra.stairway.FlightMap;
 import bio.terra.workspace.service.iam.AuthenticatedUserRequest;
 import bio.terra.workspace.service.job.exception.InvalidJobParameterException;
 import io.opencensus.contrib.spring.aop.Traced;
+import java.util.Optional;
+import java.util.UUID;
 
 public class JobBuilder {
 
@@ -12,23 +14,33 @@ public class JobBuilder {
   private Class<? extends Flight> flightClass;
   private FlightMap jobParameterMap;
   private String jobId;
+  // User-provided jobIds and generated jobIds have different behavior for duplicates, so we track
+  // whether this jobId was generated or not here.
+  private boolean jobIdGenerated;
 
-  // constructor only takes required parameters
+  /**
+   * Constructor for job builder object which takes only required parameters
+   *
+   * @param description A human readable description of the flight, used for logging and debugging.
+   * @param jobId A unique identifier for this job. If not specified, a random UUID is used instead.
+   * @param flightClass The class of the Stairway flight to launch
+   * @param userReq User credentials
+   * @param jobServiceRef Reference to a JobService object to use.
+   */
   public JobBuilder(
       String description,
-      String jobId,
+      Optional<String> jobId,
       Class<? extends Flight> flightClass,
-      Object request,
       AuthenticatedUserRequest userReq,
       JobService jobServiceRef) {
     this.jobServiceRef = jobServiceRef;
     this.flightClass = flightClass;
-    this.jobId = jobId;
+    this.jobId = jobId.orElse(UUID.randomUUID().toString());
+    this.jobIdGenerated = jobId.isEmpty();
 
     // initialize with required parameters
     this.jobParameterMap = new FlightMap();
     jobParameterMap.put(JobMapKeys.DESCRIPTION.getKeyName(), description);
-    jobParameterMap.put(JobMapKeys.REQUEST.getKeyName(), request);
     jobParameterMap.put(JobMapKeys.AUTH_USER_INFO.getKeyName(), userReq);
     jobParameterMap.put(JobMapKeys.SUBJECT_ID.getKeyName(), userReq.getSubjectId());
   }
@@ -56,27 +68,20 @@ public class JobBuilder {
   /**
    * Submit a job to stairway and return the jobID immediately.
    *
-   * @param duplicateFlightOk indicates how duplicate job IDs should be treated. true indicates this
-   *     should be ignored, false indicates this should be raised as an exception.
    * @return jobID of submitted flight
    */
-  // TODO: this is really a flag indicating "was this ID generated or not". This should be set
-  // at creation of a JobBuilder instead of on submit calls.
-  public String submit(boolean duplicateFlightOk) {
-    return jobServiceRef.submit(flightClass, jobParameterMap, jobId, duplicateFlightOk);
+  public String submit() {
+    return jobServiceRef.submit(flightClass, jobParameterMap, jobId, !jobIdGenerated);
   }
 
   /**
    * Submit a job to stairway, wait until it's complete, and return the job result.
    *
-   * @param resultClass Class of the job's result
-   * @param duplicateFlightOk indicates how duplicate job IDs should be treated. true indicates this
-   *     should be ignored, false indicates this should be raised as an exception.
    * @return Result of the finished job.
    */
   @Traced
-  public <T> T submitAndWait(Class<T> resultClass, boolean duplicateFlightOk) {
+  public <T> T submitAndWait(Class<T> resultClass) {
     return jobServiceRef.submitAndWait(
-        flightClass, jobParameterMap, resultClass, jobId, duplicateFlightOk);
+        flightClass, jobParameterMap, resultClass, jobId, !jobIdGenerated);
   }
 }

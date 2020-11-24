@@ -113,7 +113,11 @@ public class WorkspaceServiceTest extends BaseConnectedTest {
 
   @Test
   public void duplicateJobIdRequestOk() {
-    WorkspaceRequest request = defaultRequestBuilder(UUID.randomUUID()).build();
+    WorkspaceRequest request =
+        defaultRequestBuilder(UUID.randomUUID())
+            .jobId(Optional.of(UUID.randomUUID().toString()))
+            .build();
+    doNothing().when(mockSamService).createWorkspaceWithDefaults(any(), any());
     UUID returnedId = workspaceService.createWorkspace(request, USER_REQUEST);
     // Because these calls share the same jobId they're treated as duplicate requests, rather
     // than separate attempts to create the same workspace.
@@ -123,24 +127,29 @@ public class WorkspaceServiceTest extends BaseConnectedTest {
   }
 
   @Test
-  public void duplicateOperationSharesFailureResponse() {
+  public void duplicateJobSharesFailureResponse() {
     String errorMsg = "fake SAM error message";
     doThrow(new SamApiException(errorMsg))
         .when(mockSamService)
         .createWorkspaceWithDefaults(any(), any());
+    String jobId = UUID.randomUUID().toString();
 
     assertThrows(
         SamApiException.class,
         () ->
             workspaceService.createWorkspace(
-                defaultRequestBuilder(UUID.randomUUID()).build(), USER_REQUEST));
+                defaultRequestBuilder(UUID.randomUUID()).jobId(Optional.of(jobId)).build(),
+                USER_REQUEST));
     // This second call shares the above operation ID, and so should return the same SamApiException
-    // instead of a more generic internal Stairway exception.
+    // instead of a more generic internal Stairway exception even when Sam no longer throws an
+    // exception.
+    doNothing().when(mockSamService).createWorkspaceWithDefaults(any(), any());
     assertThrows(
         SamApiException.class,
         () ->
             workspaceService.createWorkspace(
-                defaultRequestBuilder(UUID.randomUUID()).build(), USER_REQUEST));
+                defaultRequestBuilder(UUID.randomUUID()).jobId(Optional.of(jobId)).build(),
+                USER_REQUEST));
   }
 
   @Test
@@ -224,7 +233,8 @@ public class WorkspaceServiceTest extends BaseConnectedTest {
             .build();
     workspaceService.createWorkspace(request, USER_REQUEST);
 
-    String jobId = workspaceService.createGoogleContext(request.workspaceId(), USER_REQUEST);
+    String jobId =
+        workspaceService.createGoogleContext(request.workspaceId(), Optional.empty(), USER_REQUEST);
     jobService.waitForJob(jobId);
     assertEquals(
         HttpStatus.OK,
@@ -252,7 +262,8 @@ public class WorkspaceServiceTest extends BaseConnectedTest {
             .build();
     workspaceService.createWorkspace(request, USER_REQUEST);
 
-    String jobId = workspaceService.createGoogleContext(request.workspaceId(), USER_REQUEST);
+    String jobId =
+        workspaceService.createGoogleContext(request.workspaceId(), Optional.empty(), USER_REQUEST);
     jobService.waitForJob(jobId);
     assertEquals(
         HttpStatus.OK,
@@ -276,7 +287,9 @@ public class WorkspaceServiceTest extends BaseConnectedTest {
 
     assertThrows(
         StageDisabledException.class,
-        () -> workspaceService.createGoogleContext(request.workspaceId(), USER_REQUEST));
+        () ->
+            workspaceService.createGoogleContext(
+                request.workspaceId(), Optional.empty(), USER_REQUEST));
   }
 
   @Test
@@ -289,7 +302,9 @@ public class WorkspaceServiceTest extends BaseConnectedTest {
 
     assertThrows(
         MissingSpendProfileException.class,
-        () -> workspaceService.createGoogleContext(request.workspaceId(), USER_REQUEST));
+        () ->
+            workspaceService.createGoogleContext(
+                request.workspaceId(), Optional.empty(), USER_REQUEST));
   }
 
   @Test
@@ -310,7 +325,9 @@ public class WorkspaceServiceTest extends BaseConnectedTest {
         .thenReturn(false);
     assertThrows(
         SpendUnauthorizedException.class,
-        () -> workspaceService.createGoogleContext(request.workspaceId(), USER_REQUEST));
+        () ->
+            workspaceService.createGoogleContext(
+                request.workspaceId(), Optional.empty(), USER_REQUEST));
   }
 
   @Test
@@ -324,7 +341,9 @@ public class WorkspaceServiceTest extends BaseConnectedTest {
 
     assertThrows(
         NoBillingAccountException.class,
-        () -> workspaceService.createGoogleContext(request.workspaceId(), USER_REQUEST));
+        () ->
+            workspaceService.createGoogleContext(
+                request.workspaceId(), Optional.empty(), USER_REQUEST));
   }
 
   /**
@@ -336,7 +355,7 @@ public class WorkspaceServiceTest extends BaseConnectedTest {
   private WorkspaceRequest.Builder defaultRequestBuilder(UUID workspaceId) {
     return WorkspaceRequest.builder()
         .workspaceId(workspaceId)
-        .jobId(UUID.randomUUID().toString())
+        .jobId(Optional.empty())
         .spendProfileId(Optional.empty())
         .workspaceStage(WorkspaceStage.RAWLS_WORKSPACE);
   }

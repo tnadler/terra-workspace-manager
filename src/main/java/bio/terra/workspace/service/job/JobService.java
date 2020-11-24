@@ -30,6 +30,7 @@ import com.google.common.annotations.VisibleForTesting;
 import io.opencensus.contrib.spring.aop.Traced;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -106,14 +107,20 @@ public class JobService {
     }
   }
 
-  // creates a new JobBuilder object and returns it.
+  /**
+   * Creates a new builder for creating a job.
+   *
+   * @param description A human readable description of the flight, used for logging and debugging.
+   * @param jobId A unique identifier for this job. If not specified, a random UUID is used instead.
+   * @param flightClass The class of the Stairway flight to launch
+   * @param userReq User credentials
+   */
   public JobBuilder newJob(
       String description,
-      String jobId,
+      Optional<String> jobId,
       Class<? extends Flight> flightClass,
-      Object request,
       AuthenticatedUserRequest userReq) {
-    return new JobBuilder(description, jobId, flightClass, request, userReq, this)
+    return new JobBuilder(description, jobId, flightClass, userReq, this)
         .addParameter(MdcHook.MDC_FLIGHT_MAP_KEY, mdcHook.getSerializedCurrentContext());
   }
 

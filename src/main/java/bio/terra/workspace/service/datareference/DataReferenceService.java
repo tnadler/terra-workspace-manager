@@ -16,6 +16,7 @@ import bio.terra.workspace.service.job.JobService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.opencensus.contrib.spring.aop.Traced;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -85,12 +86,7 @@ public class DataReferenceService {
 
     JobBuilder createJob =
         jobService
-            .newJob(
-                description,
-                UUID.randomUUID().toString(),
-                CreateDataReferenceFlight.class,
-                /* request = */ null,
-                userReq)
+            .newJob(description, Optional.empty(), CreateDataReferenceFlight.class, userReq)
             .addParameter(DataReferenceFlightMapKeys.WORKSPACE_ID, referenceRequest.workspaceId())
             .addParameter(DataReferenceFlightMapKeys.NAME, referenceRequest.name())
             .addParameter(
@@ -102,7 +98,7 @@ public class DataReferenceService {
                 DataReferenceFlightMapKeys.REFERENCE_OBJECT,
                 referenceRequest.referenceObject().toJson());
 
-    UUID referenceIdResult = createJob.submitAndWait(UUID.class, false);
+    UUID referenceIdResult = createJob.submitAndWait(UUID.class);
 
     return dataReferenceDao.getDataReference(referenceRequest.workspaceId(), referenceIdResult);
   }
