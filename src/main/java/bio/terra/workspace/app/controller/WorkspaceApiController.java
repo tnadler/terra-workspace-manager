@@ -13,7 +13,6 @@ import bio.terra.workspace.service.workspace.WorkspaceService;
 import bio.terra.workspace.service.workspace.model.Workspace;
 import bio.terra.workspace.service.workspace.model.WorkspaceRequest;
 import bio.terra.workspace.service.workspace.model.WorkspaceStage;
-import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
@@ -234,26 +233,5 @@ public class WorkspaceApiController implements WorkspaceApi {
             "Got data references in workspace %s for %s",
             enumerateResult.toString(), userReq.getEmail()));
     return ResponseEntity.ok(enumerateResult);
-  }
-
-  @Override
-  public ResponseEntity<JobModel> createGoogleContext(
-      UUID id, @Valid CreateGoogleContextRequestBody body) {
-    AuthenticatedUserRequest userReq = getAuthenticatedInfo();
-    // TODO(PF-153): Use the optional jobId from the body for idempotency instead of always creating
-    // a new job id.
-    String jobId = workspaceService.createGoogleContext(id, userReq);
-    JobModel jobModel = jobService.retrieveJob(jobId, userReq);
-    // TODO(PF-221): Fix the jobs polling location once it exists.
-    return ResponseEntity.status(HttpStatus.ACCEPTED)
-        .location(URI.create(String.format("/api/jobs/v1/%s", jobId)))
-        .body(jobModel);
-  }
-
-  @Override
-  public ResponseEntity<Void> deleteGoogleContext(UUID id) {
-    AuthenticatedUserRequest userReq = getAuthenticatedInfo();
-    workspaceService.deleteGoogleContext(id, userReq);
-    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 }
